@@ -46,8 +46,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE); /*OCULTAR TIULO*/
-        getSupportActionBar().hide(); /*OCULTAR BARRA SUPERIOR*/
+
+        //requestWindowFeature(Window.FEATURE_NO_TITLE); /*OCULTAR TIULO*/
+        //getSupportActionBar().hide(); /*OCULTAR BARRA SUPERIOR*/
         setContentView(R.layout.activity_main);
         show_pass_btn = findViewById(R.id.show_pass_btn);
         txtPassword = findViewById(R.id.txtPassword);
@@ -81,8 +82,23 @@ public class MainActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //System.out.println(txtCheck.isChecked());
-                iniciarSesion();
+
+                System.out.println("txtPassword: " +txtPassword.getText().toString());
+                System.out.println("txtUsuario: " +txtUsuario.getText().toString());
+                if(txtPassword.getText().toString().isEmpty() ){System.out.println("mensaje");
+                    Toast.makeText(getApplicationContext(),"Ingrese contraseña",Toast.LENGTH_LONG).show();
+                    /*Toast toast =Toast.makeText(getBaseContext(),"Usuario logeado correctamente",Toast.LENGTH_SHORT);
+                    toast.show();
+                    Toast.makeText(v.getContext(),"Ingrese contraseña",Toast.LENGTH_SHORT).show();*/
+                }else if(txtUsuario.getText().toString().isEmpty()){
+                    Toast.makeText(getApplicationContext(),"Ingrese usuario",Toast.LENGTH_LONG).show();
+                    /*Toast toast =Toast.makeText(getBaseContext(),"Usuario logeado correctamente",Toast.LENGTH_SHORT);
+                    toast.show();
+                    Toast.makeText(v.getContext(),"Ingrese contraseña",Toast.LENGTH_SHORT).show();*/
+                }else{
+                    iniciarSesion();
+                }
+
             }
         });
 
@@ -94,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         /* EN EL MANIFEST SE AGREGO LA SGTE LINEA android:usesCleartextTraffic="true" ESTO SOLO SE HABILITA PARA HTTP*/
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.getCache().clear();
-        String url="http://192.168.0.2:8080/public/auth/login";
+        String url="http://192.168.0.8:8080/public/auth/login";
         //http://192.168.0.2/Proyectos/apiandroid/public/auth/login";
         //https://www.youtube.com/watch?v=EzRZVsw70Rk
         //https://www.youtube.com/watch?v=s8l5yJ9dlfQ&list=PLCTD_CpMeEKSiUQ_svD3ovD1qXdKQFMvO&index=10

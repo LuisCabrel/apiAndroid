@@ -10,23 +10,25 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.Response;
 import com.bumptech.glide.Glide;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AdapterCliente extends RecyclerView.Adapter<AdapterCliente.ClientesViewHolder> {
-    private Context nCtx;
-    private List<Clientes> clientesList;
-    public AdapterCliente(Context nCtx,List<Clientes> clientesList){
-        this.nCtx=nCtx;
-        this.clientesList =clientesList;
+    private Context  nCtx;
+    private ArrayList<Clientes> clientesList;
+    public AdapterCliente(ArrayList<Clientes> clientesList){
+        //this.nCtx= (Context) nCtx;
+        this.clientesList = clientesList;
     }
 
     @NonNull
     @Override
     public ClientesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflater = LayoutInflater.from(nCtx);
-        View contentView = inflater.inflate(R.layout.activity_card,null);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        View contentView = inflater.inflate(R.layout.activity_listacliente,null);
         return new ClientesViewHolder(contentView);
     }
 
@@ -34,12 +36,9 @@ public class AdapterCliente extends RecyclerView.Adapter<AdapterCliente.Clientes
     public void onBindViewHolder(@NonNull ClientesViewHolder holder, int position) {
         Clientes clientes = clientesList.get(position);
         //CARGAMOS IMAGEN
-        Glide.with(nCtx)
+        Glide.with(holder.imgFoto)
                 .load(clientes.getImagen())
                 .into(holder.imgFoto);
-
-        //holder.imgFoto =(Holder) holder;
-        //holder.imgFoto.setImageResource(clientes.getImagen());
         holder.txtNombresCliente.setText(clientes.getNombre());
         holder.txtApellidosCliente.setText(clientes.getApellido());
         holder.txtTelefonoCliente.setText(clientes.getTelefono());

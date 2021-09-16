@@ -1,12 +1,21 @@
 package com.programadoreshuacho.proyecto1;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,6 +25,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.material.navigation.NavigationView;
+import com.programadoreshuacho.proyecto1.Fragments.MainFragment;
+import com.programadoreshuacho.proyecto1.Fragments.MainFragmentClientes;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,99 +38,89 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Dashboard extends AppCompatActivity {
+public class Dashboard extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
     public static String txtUsuarioBienvenida="datosLogUsuario";
-    String tokenizador;
-    TextView txtBienvenida;
-    SharedPreferences preferencias;
-    /*
-    https://www.youtube.com/watch?v=FnG95Jy3I1c&ab_channel=AlexNarv%C3%A1ezProgramming
-     */
 
-    private static final String URL_listaclientes="http://192.168.0.2:8080/public/api/clientes";
-    /*LISTA PARA ALMACENAR TODOS LOS CLIENTES*/
-    List<Clientes> clientesList;
-    RecyclerView recyclerView;
+    /* https://www.youtube.com/watch?v=0EIU5R_zHUc --> menu_lateral*/
+
+    /*VARIABLE PARA MENU LATERAL*/
+    DrawerLayout drawerLayout;
+    ActionBarDrawerToggle actionBarDrawerToggle;
+    Toolbar toolbar;
+    NavigationView navigationView;
+    /*FIN DE VARIABLES MENU LATERAL*/
+    /*VARIABLES PARA LEVANTAR FRAGMENT*/
+    FragmentManager fragmentManager;
+    FragmentTransaction fragmentTransaction;
+    TextView usuariotxt,perfiltxt;
+    SharedPreferences preferencias;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_dashboard);
+        setContentView(R.layout.activity_dashboardprincipal);
 
-        txtBienvenida = (TextView)findViewById(R.id.txtUsuarioLog);
-        /*RECUPERAMOS LOS DATOS DE SESSION*/
-        System.out.println(txtUsuarioBienvenida);
-        User token =new User();
-        tokenizador = token.getUsuario();
-        System.out.println("Token: "+token.getToken());
-        String usuario = getIntent().getStringExtra("datosLogUsuario");
-        System.out.println(usuario);
-        txtBienvenida.setText("Bienvenido "+usuario);
+        /* INICIO TODO PARA EL MENU LATERAL */
+        /* CLONAR LOS STYLE DE THEME theme/theme.xml Y SE CAMBIA DE NOMBRE*/
+        /* EN MANIFEST AGREGAR EL THEMA MODIFICADO*/
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        drawerLayout = findViewById(R.id.drawer);
+        navigationView = findViewById(R.id.navigationView);
+        /*ESTABLECER EVENTO CLICK AL NAVIGATIONVIEW*/
+        navigationView.setNavigationItemSelectedListener(this);
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this,drawerLayout,toolbar,R.string.open,R.string.close);
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
+        actionBarDrawerToggle.setDrawerIndicatorEnabled(true);
+        actionBarDrawerToggle.syncState();
 
-        /*BUSCAMOS LOS DATOS E SESSION*/
-        preferencias = getSharedPreferences("datosSession", Context.MODE_PRIVATE);
-        String valorToken = preferencias.getString("sessionToken","");
-        tokenizador =valorToken;
-        System.out.println(valorToken);
+        /* FIN TODO PARA EL MENU LATERAL */
+        /* CARGAR FRAGMENT PRINCIPAL POR DEFECTO*/
+        fragmentManager = getSupportFragmentManager();
+        fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.add(R.id.contenedorFragment,new MainFragment());
+        fragmentTransaction.commit();
+        setTitle("Home");
+        /* FIN CARGAR FRAGMENT PRINCIPAL*/
 
-        /**/
-        recyclerView =(RecyclerView)findViewById(R.id.rvListaClientes);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        
-        clientesList = new ArrayList<>();
-        loadclientes();
+        /*BUSCAMOS LOS DATOS E SESSION Y COLOCAMOS EN LA CABECERA DEL DRAWER*/
+        preferencias = this.getSharedPreferences("datosSession", Context.MODE_PRIVATE);
+        String valorUsuario = preferencias.getString("sessionUsuario","");
+        String ValorPerfil = preferencias.getString("sessionNombres","");
+        View hView = navigationView.getHeaderView(0);
+        usuariotxt = (TextView) hView.findViewById(R.id.tituloHeader);
+        perfiltxt = (TextView) hView.findViewById(R.id.usuarioHead);
+        usuariotxt.setText(valorUsuario);
+        perfiltxt.setText(ValorPerfil);
+
+
+
+
 
 
     }
 
-    private void loadclientes() {
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, URL_listaclientes,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            //CONVERTIMOS EL STRING A JSON ARRAY OBJECT
-                            JSONArray array = new JSONArray(response);
-
-                            //NAVEGAMOS A TRAVEZ DE LOS OBJETOS
-                            for (int i=0;i<array.length();i++){
-                                JSONObject clients = array.getJSONObject(i);
-                                clientesList.add(new Clientes(
-                                        clients.getInt("id"),
-                                        clients.getString("nombre"),
-                                        clients.getString("apellido"),
-                                        clients.getString("telefono"),
-                                        clients.getString("correo"),
-                                        clients.getString("imagen")
-                                ));
-                            }
-
-                            AdapterCliente adapterCliente = new AdapterCliente(Dashboard.this,clientesList);
-                            recyclerView.setAdapter(adapterCliente);
 
 
-                        }catch (JSONException e){
-                            e.printStackTrace();
-                        }
+    /*VALIDAMOS OPCIONES DE MENU PARA ENVIAR EL FRAGMENT CORRECTO*/
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        drawerLayout.closeDrawer(GravityCompat.START);
+        if(menuItem.getItemId() == R.id.home){
+            fragmentManager = getSupportFragmentManager();
+            fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.contenedorFragment,new MainFragment());
+            fragmentTransaction.commit();
 
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast toast =Toast.makeText(getApplicationContext(),error.toString(),Toast.LENGTH_SHORT);
-                        toast.show();
-                    }
-                }
-        ){
-            //This is for Headers If You Needed
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("Content-Type", "application/json; charset=UTF-8");
-                params.put("Authorization", "Bearer "+tokenizador);
-                return params;
-            }
-        };
-        Volley.newRequestQueue(this).add(stringRequest);
+        }
+        if(menuItem.getItemId() == R.id.clientes){
+            fragmentManager = getSupportFragmentManager();
+            fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.contenedorFragment,new MainFragmentClientes());
+            fragmentTransaction.commit();
+        }
+        setTitle(menuItem.getTitle());
+        return false;
     }
 }
